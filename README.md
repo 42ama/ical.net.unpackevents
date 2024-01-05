@@ -30,5 +30,5 @@ Assert.AreEqual(recurringInstancesCount, actualEvents.Count);
 ```
 
 ## Links
-- [Github](https://github.com/42ama/ical.net.unpackevents)
+- [GitHub](https://github.com/42ama/ical.net.unpackevents)
 - [NuGet](https://www.nuget.org/packages/Ical.Net.UnpackEvents/)
