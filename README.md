@@ -23,7 +23,7 @@ calendar.AddChild(new CalendarEvent
 });
 
 // Unpack the events into a plain list.
-var actualEvents = calendar.Events.UnpackEvents();
+var actualEvents = calendar.Events.UnpackEvents(); // returns List<CalendarEvent>
 
 // Verify that the count of unpacked events matches the expected count.
 Assert.AreEqual(recurringInstancesCount, actualEvents.Count);
