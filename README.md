@@ -2,7 +2,7 @@
 This is an extension for [Ical.Net](https://www.nuget.org/packages/Ical.Net), which enables the exportation of recurring events into a plain list of events. The exported events retain information enriched from their parent event.
 
 ## Usage examples
-```
+```c#
 // Create iCal calendar.
 var calendar = new Calendar(); 
 
