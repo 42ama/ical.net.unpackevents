@@ -12,6 +12,38 @@ namespace Ical.Net.UnpackEvents.Tests
     public class SimpleRecurringDailyEventsTests
     {
         [TestMethod]
+        public void ReadMeExample()
+        {
+            // Create iCal calendar.
+            var calendar = new Calendar();
+
+            // Add a recurring event.
+            calendar.AddChild(new CalendarEvent
+            {
+                Start = new CalDateTime(DateTime.Now),
+                End = new CalDateTime(DateTime.Now.AddMinutes(30)),
+                RecurrenceRules = new List<RecurrencePattern> {
+                    new RecurrencePattern(FrequencyType.Daily, 1)
+                }
+            });
+
+            // Add plain event to expand date range to two days.
+            calendar.AddChild(new CalendarEvent
+            {
+                Start = new CalDateTime(DateTime.Now.AddMinutes(60).AddDays(1)),
+                End = new CalDateTime(DateTime.Now.AddMinutes(90).AddDays(1))
+            });
+
+
+            // Unpack the events into a plain list.
+            var actualEvents = calendar.Events.UnpackEvents(); // returns List<CalendarEvent>
+            var allEventsCount = 3; // In two days there are: two instances of recurring event, one plain event.
+
+            // Verify that the count of unpacked events matches the expected count.
+            Assert.AreEqual(allEventsCount, actualEvents.Count);
+        }
+
+        [TestMethod]
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(2)]
