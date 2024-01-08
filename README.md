@@ -1,6 +1,8 @@
 # Ical.Net UnpackEvents
 This is an extension for [Ical.Net](https://www.nuget.org/packages/Ical.Net), which enables the exportation of recurring events into a plain list of events. The exported events retain information enriched from their parent event.
 
+Solution is avalivable as [NuGet package](https://www.nuget.org/packages/Ical.Net.UnpackEvents/).
+
 ## Usage examples
 ```c#
 // Create iCal calendar.
