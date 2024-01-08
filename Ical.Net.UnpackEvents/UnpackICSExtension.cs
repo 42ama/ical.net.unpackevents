@@ -27,8 +27,15 @@ namespace Ical.Net.UnpackEvents
             var parentRecurringEvents = new List<CalendarEvent>();
             var instanceRecurringEvents = new Dictionary<string, IList<CalendarEvent>>();
 
+            var endDateOfLastEvent = DateTime.MinValue;
+
             foreach (var calendarEvent in calendarEvents)
             {
+                if (calendarEvent.End.Value > endDateOfLastEvent)
+                {
+                    endDateOfLastEvent = calendarEvent.End.Value;
+                }
+
                 // Recurring event parent has set RRULE property.
                 var isParent = calendarEvent.RecurrenceRules.Count > 0;
                 if (isParent)
@@ -59,7 +66,7 @@ namespace Ical.Net.UnpackEvents
             foreach (var parent in parentRecurringEvents)
             {
                 // Generate series of events. Key is candidate for RECURRENCE-ID.
-                var generatedSeries = GenerateSeries(parent);
+                var generatedSeries = GenerateSeries(parent, endDateOfLastEvent);
 
                 // Replace events by found instances.
                 var parentUid = parent.Uid;
@@ -159,14 +166,16 @@ namespace Ical.Net.UnpackEvents
         /// Generate series of instances of recurring event.
         /// </summary>
         /// <param name="recurringEvent">Recurring event from which recurrence rules and event information will be taken.</param>
+        /// <param name="until">Date time until events should be generated.</param>
         /// <returns>Events stored in values, keys here just for quick access to event replacing.</returns>
-        private static Dictionary<IDateTime, CalendarEvent> GenerateSeries(CalendarEvent recurringEvent)
+        private static Dictionary<IDateTime, CalendarEvent> GenerateSeries(CalendarEvent recurringEvent, DateTime until)
         {
             if (recurringEvent == null) { throw new ArgumentNullException(nameof(recurringEvent)); }
 
             var eventData = new EventData
             {
                 Start = recurringEvent.Start,
+                Until = until,
                 Duration = recurringEvent.Duration,
                 ExceptionDates = recurringEvent.ExceptionDates
             };
@@ -174,9 +183,7 @@ namespace Ical.Net.UnpackEvents
             var resultSeries = new Dictionary<IDateTime, CalendarEvent>();
             foreach (var rule in recurringEvent.RecurrenceRules.ToList())
             {
-#pragma warning disable S1854 // Unused assignments should be removed
                 var ruleEventDateTimeStartSeries = new List<IDateTime>();
-#pragma warning restore S1854 // Unused assignments should be removed
 
                 // Generate series without exception dates.
                 switch (rule.Frequency)
@@ -218,10 +225,18 @@ namespace Ical.Net.UnpackEvents
                 daysSet.Add(weekDay.DayOfWeek);
             }
 
-            var seriesDuration = recurrencePattern.Until - eventData.Start.Value;
+            var minimalUntil = GetMinimalDateTimeExceptingMinimal(eventData.Until, recurrencePattern.Until);
+            var seriesDuration = minimalUntil - eventData.Start.Value;
+
+            if (seriesDuration.TotalMinutes == 0)
+            {
+                throw new Exception("Series was empty");
+            }
+
+            var days = Convert.ToInt32(Math.Ceiling(seriesDuration.TotalDays));
 
             // As increment we are adding interval
-            for (int i = 0; i < seriesDuration.Days; i += recurrencePattern.Interval)
+            for (int i = 0; i < days; i += recurrencePattern.Interval)
             {
                 var dayOnProbe = eventData.Start.AddDays(i);
 
@@ -277,12 +292,18 @@ namespace Ical.Net.UnpackEvents
 
             var weeksNumbersSet = new HashSet<int>(recurrencePattern.ByWeekNo);// !!! This implementation does not process negatives.
 
-            var seriesDuration = recurrencePattern.Until - eventData.Start.Value;
+            var minimalUntil = GetMinimalDateTimeExceptingMinimal(eventData.Until, recurrencePattern.Until);
+            var seriesDuration = minimalUntil - eventData.Start.Value;
+            if (seriesDuration.TotalMinutes == 0)
+            {
+                throw new Exception("Series was empty");
+            }
 
+            var days = Convert.ToInt32(Math.Ceiling(seriesDuration.TotalDays));
 
             var previousWeekNumber = GetIso8601WeekOfYear(eventData.Start.Value);
 
-            for (int i = 0; i < seriesDuration.Days; i++)
+            for (int i = 0; i < days; i++)
             {
                 var dayOnProbe = eventData.Start.AddDays(i);
 
@@ -349,6 +370,33 @@ namespace Ical.Net.UnpackEvents
             // Return the week of our adjusted day
             return CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         }
+
+        /// <summary>
+        /// Returns minimal DateTime between two parameters, excluding DateTime.MinValue. 
+        /// </summary>
+        /// <returns>Minimal DateTime between two parameters, excluding DateTime.MinValue. </returns>
+        /// <exception cref="Exception">Throws if both parameters is DateTime.MinValue/</exception>
+        private static DateTime GetMinimalDateTimeExceptingMinimal(DateTime dateTimeA, DateTime dateTimeB)
+        {
+            if (dateTimeA == DateTime.MinValue && dateTimeB == DateTime.MinValue)
+            {
+                throw new Exception("At least one date should be greater then DateTime.MinValue");
+            }
+
+            if (dateTimeA == DateTime.MinValue)
+            {
+                return dateTimeB;
+            }
+
+            if (dateTimeB == DateTime.MinValue)
+            {
+                return dateTimeA;
+            }
+
+            return dateTimeA < dateTimeB
+                   ? dateTimeA
+                   : dateTimeB;
+        }
     }
 
     /// <summary>
@@ -360,6 +408,11 @@ namespace Ical.Net.UnpackEvents
         /// DateTime at which event starts.
         /// </summary>
         public IDateTime Start { get; set; }
+
+        /// <summary>
+        /// DateTime to which events should be generated.
+        /// </summary>
+        public DateTime Until { get; set; }
 
         /// <summary>
         /// Duration of event.

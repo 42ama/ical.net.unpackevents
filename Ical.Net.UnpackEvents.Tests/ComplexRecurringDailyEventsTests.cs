@@ -18,7 +18,7 @@ namespace Ical.Net.UnpackEvents.Tests
         [DataRow(2)]
         [DataRow(10)]
         [TestCategory("NotImplemented")]
-        public void ComplexRecurringEvent_DailyRecurrence_TwoRRULE_UnpackedCorrectly(int endRecurrenceAfterDays)
+        public void ComplexRecurringEvent_DailyRecurrence_TwoRRULE(int endRecurrenceAfterDays)
         {
             var calendar = new Calendar();
 
