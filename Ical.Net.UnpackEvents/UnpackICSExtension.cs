@@ -77,8 +77,8 @@ namespace Ical.Net.UnpackEvents
                         // Enrich event.
                         CopyFromParentToIntance(parent, instance);
 
-                        // Store in same location.
-                        generatedSeries[instance.RecurrenceId] = instance;
+                        // Store in same location. // Issue #7
+                        generatedSeries[instance.RecurrenceId.ToTimeZone("UTC")] = instance;
                     }
                 }
 
@@ -203,10 +203,10 @@ namespace Ical.Net.UnpackEvents
                 foreach (var startDateTime in ruleEventDateTimeStartSeries)
                 {
                     var copiedEvent = CreateEventBasedOnParent(recurringEvent, startDateTime);
-                    resultSeries.Add(startDateTime, copiedEvent);
+                    resultSeries.Add(startDateTime.ToTimeZone("UTC"), copiedEvent);  // Issue #7
                 }
             }
-
+            
             return resultSeries;
         }
 
@@ -300,8 +300,10 @@ namespace Ical.Net.UnpackEvents
             }
 
             var days = Convert.ToInt32(Math.Ceiling(seriesDuration.TotalDays));
+            var currentWeekNumber = GetIso8601WeekOfYear(eventData.Start.Value);
 
-            var previousWeekNumber = GetIso8601WeekOfYear(eventData.Start.Value);
+            // Set previous week number to check against. At first iteration we check week against itself.
+            var previousWeekNumber = currentWeekNumber;
 
             for (int i = 0; i < days; i++)
             {

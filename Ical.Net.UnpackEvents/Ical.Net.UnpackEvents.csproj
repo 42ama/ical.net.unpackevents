@@ -7,7 +7,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Ical.Net.UnpackEvents</PackageId>
-    <Version>2.0.2</Version>
+    <Version>2.0.4</Version>
     <Authors>Maxim Alonov</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Ical.Net extension for unpacking recurring events into a plain collection. Allows to view different instances of events as distinct objects.</Description>
