@@ -158,6 +158,7 @@ namespace Ical.Net.UnpackEvents
             copy.ExceptionDates = default;
 
             copy.Start = start;
+            copy.End = copy.Start.Add(copy.Duration);
 
             return copy;
         }

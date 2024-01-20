@@ -31,6 +31,7 @@ namespace Ical.Net.UnpackEvents
             calendarEvent.Summary = other.Summary;
             calendarEvent.Description = other.Description;
             calendarEvent.Start = other.Start;
+            calendarEvent.Duration = other.Duration;
             calendarEvent.End = other.End;
             calendarEvent.DtStamp = other.DtStamp;
 
